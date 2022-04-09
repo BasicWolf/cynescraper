@@ -107,8 +107,10 @@ def get_article_publish_date() -> datetime:
 
 def apply_printer_friendly_styles():
     """
-    A display:block style for the article content <span> is required,
-    so that text lines are not split over pages when printed.
+    WebKit has a bug in "Print to PDF" functionality:
+    a text lines on the edge of a page may be split
+    between two pages.
+    We try to apply some CSS to fix this behaviour.
     """
     driver.execute_script('''
         Array.from(document.getElementsByClassName('oxy-stock-content-styles'))
