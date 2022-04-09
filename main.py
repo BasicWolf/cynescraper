@@ -33,7 +33,6 @@ def scrape_articles():
     for page_number in range(SCRAPE_FROM_PAGE_NUMBER, SCRAPE_FROM_PAGE_NUMBER + 1):
         for article_url in scrape_articles_urls_from_page(page_number):
             save_article_page_to_pdf(article_url)
-            wait_for_pdf_save_process_to_complete()
 
 
 def scrape_articles_urls_from_page(page_number: int) -> List[str]:
@@ -106,6 +105,28 @@ def get_article_publish_date() -> datetime:
     return datetime.strptime(publish_date_as_text, '%B %d, %Y')
 
 
+def apply_printer_friendly_styles():
+    """
+    A display:block style for the article content <span> is required,
+    so that text lines are not split over pages when printed.
+    """
+    driver.execute_script('''
+        Array.from(document.getElementsByClassName('oxy-stock-content-styles'))
+            .forEach((elem) => {
+                elem.style.display = 'block'; 
+                elem.style.pageBreakInside = 'avoid';
+            });
+    ''')
+
+
+def print_page(file_name_without_extension: str):
+    file_name = f'{file_name_without_extension}.pdf'
+    logger.debug('Printing %s', file_name)
+    driver.execute_script(f'document.title = "{file_name}";')
+    driver.execute_script('window.print();')
+    wait_for_pdf_save_process_to_complete()
+
+
 def wait_for_pdf_save_process_to_complete():
     time.sleep(5)
 
@@ -132,25 +153,6 @@ def setup_chrome_driver():
     )
 
 
-def apply_printer_friendly_styles():
-    """
-    A display:block style for the article content <span> is required,
-    so that text lines are not split over pages when printed.
-    """
-    driver.execute_script('''
-        Array.from(document.getElementsByClassName('oxy-stock-content-styles'))
-            .forEach((elem) => elem.style.display = 'block');
-    ''')
-
-
-def print_page(file_name_without_extension: str):
-    file_name = f'{file_name_without_extension}.pdf'
-    logger.debug('Printing %s', file_name)
-    driver.execute_script(f'document.title = "{file_name}"')
-    driver.execute_script('window.print();')
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     main()
 
